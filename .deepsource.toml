@@ -1,0 +1,6 @@
+version = 1
+
+test_patterns = ["tests/**", "src/zarr/testing/*"]
+
+[[analyzers]]
+name = "python"
