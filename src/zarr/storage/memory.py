@@ -8,7 +8,7 @@ from zarr.core.common import concurrent_map
 from zarr.storage._utils import _normalize_interval_index
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Iterable, MutableMapping
+    from collections.abc import AsyncIterator, Iterable, MutableMapping
 
     from zarr.core.buffer import BufferPrototype
     from zarr.core.common import AccessModeLiteral
@@ -143,21 +143,20 @@ class MemoryStore(Store):
         # docstring inherited
         raise NotImplementedError
 
-    async def list(self) -> AsyncGenerator[str, None]:
+    async def list(self) -> AsyncIterator[str]:
         # docstring inherited
         for key in self._store_dict:
             yield key
 
-    async def list_prefix(self, prefix: str) -> AsyncGenerator[str, None]:
+    async def list_prefix(self, prefix: str) -> AsyncIterator[str]:
         # docstring inherited
         for key in self._store_dict:
             if key.startswith(prefix):
                 yield key.removeprefix(prefix)
 
-    async def list_dir(self, prefix: str) -> AsyncGenerator[str, None]:
+    async def list_dir(self, prefix: str) -> AsyncIterator[str]:
         # docstring inherited
-        if prefix.endswith("/"):
-            prefix = prefix[:-1]
+        prefix = prefix.rstrip("/")
 
         if prefix == "":
             keys_unique = {k.split("/")[0] for k in self._store_dict}

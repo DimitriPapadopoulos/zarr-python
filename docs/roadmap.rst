@@ -234,13 +234,13 @@ expose the required methods as async methods.
        async def set_partial_values(self, key_start_values: List[Tuple[str, int, Union[bytes, bytearray, memoryview]]]) -> None:
            ...  # required for writable stores
 
-       async def list(self) -> List[str]:
+       async def list(self) -> AsyncIterator[str]:
            ...  # required for listable stores
 
-       async def list_prefix(self, prefix: str) -> List[str]:
+       async def list_prefix(self, prefix: str) -> AsyncIterator[str]:
            ...  # required for listable stores
 
-       async def list_dir(self, prefix: str) -> List[str]:
+       async def list_dir(self, prefix: str) -> AsyncIterator[str]:
            ...  # required for listable stores
 
        # additional (optional methods)

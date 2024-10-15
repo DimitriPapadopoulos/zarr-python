@@ -5,7 +5,7 @@ from asyncio import gather
 from typing import TYPE_CHECKING, NamedTuple, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Iterable
+    from collections.abc import AsyncGenerator, AsyncIterator, Iterable
     from types import TracebackType
     from typing import Any, Self, TypeAlias
 
@@ -329,17 +329,16 @@ class Store(ABC):
         ...
 
     @abstractmethod
-    def list(self) -> AsyncGenerator[str, None]:
+    async def list(self) -> AsyncIterator[str]:
         """Retrieve all keys in the store.
 
         Returns
         -------
-        AsyncGenerator[str, None]
+        AsyncIterator[str]
         """
-        ...
 
     @abstractmethod
-    def list_prefix(self, prefix: str) -> AsyncGenerator[str, None]:
+    async def list_prefix(self, prefix: str) -> AsyncIterator[str]:
         """
         Retrieve all keys in the store that begin with a given prefix. Keys are returned with the
         common leading prefix removed.
@@ -350,12 +349,11 @@ class Store(ABC):
 
         Returns
         -------
-        AsyncGenerator[str, None]
+        AsyncIterator[str]
         """
-        ...
 
     @abstractmethod
-    def list_dir(self, prefix: str) -> AsyncGenerator[str, None]:
+    async def list_dir(self, prefix: str) -> AsyncIterator[str]:
         """
         Retrieve all keys and prefixes with a given prefix and which do not contain the character
         “/” after the given prefix.
@@ -366,9 +364,8 @@ class Store(ABC):
 
         Returns
         -------
-        AsyncGenerator[str, None]
+        AsyncIterator[str]
         """
-        ...
 
     def close(self) -> None:
         """Close the store."""
