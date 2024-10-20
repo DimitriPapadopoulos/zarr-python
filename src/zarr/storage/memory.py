@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING, Self
 
 from zarr.abc.store import ByteRangeRequest, Store
@@ -134,10 +135,8 @@ class MemoryStore(Store):
     async def delete(self, key: str) -> None:
         # docstring inherited
         self._check_writable()
-        try:
+        with contextlib.suppress(KeyError):
             del self._store_dict[key]
-        except KeyError:
-            pass
 
     async def set_partial_values(self, key_start_values: Iterable[tuple[str, int, bytes]]) -> None:
         # docstring inherited
