@@ -2082,7 +2082,94 @@ class AsyncArray(Generic[T_ArrayMetadata]):
 @dataclass(frozen=False)
 class Array(Generic[T_ArrayMetadata]):
     """
-    A Zarr array.
+    A Zarr array - the main data structure for chunked, compressed N-dimensional data.
+
+    The Array class provides a NumPy-like interface for working with large arrays
+    stored in various backends (memory, disk, cloud storage, etc.). Data is divided
+    into chunks which can be compressed and read/written independently.
+
+    Arrays support:
+    - NumPy-style indexing and slicing
+    - Concurrent reads and writes
+    - Multiple compression codecs
+    - Flexible storage backends
+    - Metadata and user-defined attributes
+
+    Attributes
+    ----------
+    async_array : AsyncArray
+        An asynchronous version of this array for batched operations.
+    config : ArrayConfig
+        Runtime configuration for this array (read-only).
+    shape : tuple of int
+        The shape of the array.
+    chunks : tuple of int
+        The chunk shape.
+    dtype : numpy.dtype
+        The data type of the array elements.
+    size : int
+        The total number of elements in the array.
+    ndim : int
+        The number of dimensions.
+    attrs : Attributes
+        User-defined attributes stored with the array.
+    store : Store
+        The storage backend for this array.
+    metadata : ArrayMetadata
+        The full metadata for this array.
+
+    Examples
+    --------
+    Create an array with default settings:
+
+    >>> import zarr
+    >>> arr = zarr.create(shape=(1000, 1000), chunks=(100, 100), dtype='f4')
+    >>> arr.shape
+    (1000, 1000)
+
+    Write and read data using NumPy-style indexing:
+
+    >>> import numpy as np
+    >>> arr[0:100, 0:100] = np.random.random((100, 100))
+    >>> data = arr[0:100, 0:100]
+    >>> data.shape
+    (100, 100)
+
+    Access array properties:
+
+    >>> arr.chunks
+    (100, 100)
+    >>> arr.dtype
+    dtype('float32')
+    >>> arr.size
+    1000000
+
+    Set and get attributes:
+
+    >>> arr.attrs['description'] = 'My dataset'
+    >>> arr.attrs['description']
+    'My dataset'
+
+    Use with context manager for automatic cleanup:
+
+    >>> with zarr.open_array('data.zarr', mode='w', shape=(100,), dtype='i4') as arr:
+    ...     arr[:] = np.arange(100)
+
+    Notes
+    -----
+    The Array class is the synchronous interface to Zarr arrays. For asynchronous
+    operations or batching multiple operations together, use the `async_array`
+    property to access the underlying AsyncArray.
+
+    Arrays are thread-safe for concurrent reads, and can support concurrent writes
+    with appropriate synchronization mechanisms.
+
+    See Also
+    --------
+    AsyncArray : The asynchronous version of Array
+    Group : Hierarchical organization of arrays
+    zarr.create : Function to create new arrays
+    zarr.open_array : Function to open existing arrays
     """
 
     _async_array: AsyncArray[T_ArrayMetadata]

@@ -1799,7 +1799,106 @@ class AsyncGroup:
 @dataclass(frozen=True)
 class Group(SyncMixin):
     """
-    A Zarr group.
+    A Zarr group - a hierarchical container for organizing arrays and other groups.
+
+    Groups provide a way to organize multiple arrays in a hierarchical structure,
+    similar to directories in a file system or groups in HDF5. Groups can contain
+    arrays and other groups, allowing for complex data organization.
+
+    Groups support:
+    - Creating and accessing arrays
+    - Creating and accessing subgroups
+    - Hierarchical organization
+    - Metadata and user-defined attributes
+    - Iteration over members
+    - Tree visualization
+
+    Attributes
+    ----------
+    async_group : AsyncGroup
+        An asynchronous version of this group.
+    attrs : Attributes
+        User-defined attributes stored with the group.
+    store : Store
+        The storage backend for this group.
+    metadata : GroupMetadata
+        The full metadata for this group.
+    name : str
+        The name (path) of this group.
+    path : str
+        The absolute path to this group within the store.
+
+    Examples
+    --------
+    Create a group and add arrays:
+
+    >>> import zarr
+    >>> import numpy as np
+    >>> store = zarr.storage.MemoryStore()
+    >>> root = zarr.group(store)
+    >>> arr = root.create_array('data', shape=(100,), dtype='f4')
+    >>> arr[:] = np.random.random(100)
+
+    Create nested groups:
+
+    >>> root = zarr.group()
+    >>> level1 = root.create_group('level1')
+    >>> level2 = level1.create_group('level2')
+    >>> level2.create_array('data', shape=(10, 10), dtype='i4')
+
+    Access group members:
+
+    >>> root = zarr.group()
+    >>> root.create_array('x', shape=(5,), dtype='f4')
+    >>> root.create_array('y', shape=(5,), dtype='f4')
+    >>> list(root.array_keys())
+    ['x', 'y']
+    >>> root['x'][:]
+    array([0., 0., 0., 0., 0.], dtype=float32)
+
+    Set group attributes:
+
+    >>> root = zarr.group()
+    >>> root.attrs['description'] = 'Experimental data'
+    >>> root.attrs['experiment_id'] = 42
+    >>> root.attrs['description']
+    'Experimental data'
+
+    Visualize group hierarchy:
+
+    >>> root = zarr.group()
+    >>> root.create_group('raw')
+    >>> root.create_group('processed')
+    >>> root['raw'].create_array('sensor1', shape=(100,), dtype='f4')
+    >>> root['processed'].create_array('result', shape=(100,), dtype='f4')
+    >>> root.tree()
+    # Shows hierarchical tree view
+
+    Iterate over group members:
+
+    >>> root = zarr.group()
+    >>> root.create_array('a', shape=(10,), dtype='i4')
+    >>> root.create_group('subgroup')
+    >>> for key in root:
+    ...     print(key, type(root[key]))
+    a <class 'zarr.core.array.Array'>
+    subgroup <class 'zarr.core.group.Group'>
+
+    Notes
+    -----
+    Groups are the primary way to organize multiple related arrays in Zarr. They
+    provide a hierarchical namespace and can store metadata that applies to all
+    contained arrays.
+
+    Like Arrays, Groups are thread-safe for concurrent reads and can support
+    concurrent writes with appropriate synchronization.
+
+    See Also
+    --------
+    AsyncGroup : The asynchronous version of Group
+    Array : N-dimensional array storage
+    zarr.group : Function to create new groups
+    zarr.open_group : Function to open existing groups
     """
 
     _async_group: AsyncGroup

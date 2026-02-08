@@ -32,7 +32,72 @@ default_system_endian = Endian(sys.byteorder)
 
 @dataclass(frozen=True)
 class BytesCodec(ArrayBytesCodec):
-    """bytes codec"""
+    """
+    Bytes codec for converting arrays to/from raw bytes.
+
+    This codec handles the conversion between typed NumPy arrays and raw byte
+    representations. It's typically the first codec in a Zarr v3 codec pipeline,
+    converting array data to bytes before applying compression or other transformations.
+
+    Attributes
+    ----------
+    is_fixed_size : bool
+        Always True, as the byte representation has a predictable size based on
+        the array shape and dtype.
+    endian : Endian or None
+        The byte order (endianness) to use for multi-byte data types.
+
+    Parameters
+    ----------
+    endian : {'big', 'little'} or Endian or None, optional
+        The byte order for multi-byte data types:
+
+        - 'big': Big-endian byte order (most significant byte first)
+        - 'little': Little-endian byte order (least significant byte first)
+        - None: No byte order specified (only valid for single-byte types)
+
+        Default: system native byte order.
+
+    Examples
+    --------
+    Create a bytes codec with system endianness:
+
+    >>> from zarr.codecs import BytesCodec
+    >>> codec = BytesCodec()
+
+    Create with explicit little-endian:
+
+    >>> codec = BytesCodec(endian='little')
+    >>> codec.endian
+    <Endian.little: 'little'>
+
+    Use in a codec pipeline:
+
+    >>> import zarr
+    >>> from zarr.codecs import BytesCodec, ZstdCodec
+    >>> arr = zarr.create(
+    ...     shape=(100, 100),
+    ...     chunks=(10, 10),
+    ...     dtype='f8',
+    ...     zarr_format=3,
+    ...     codecs=[BytesCodec(), ZstdCodec()]
+    ... )
+
+    Notes
+    -----
+    In Zarr v3, the BytesCodec is required as the array-to-bytes codec in the
+    codec pipeline. It must appear before any bytes-to-bytes codecs (like
+    compression codecs).
+
+    For single-byte data types (like 'uint8' or 'int8'), the endianness parameter
+    is not required and will be set to None during array specification evolution.
+
+    See Also
+    --------
+    Endian : Enum for byte order options
+    ZstdCodec : Compression codec often used after BytesCodec
+    BloscCodec : Alternative compression codec
+    """
 
     is_fixed_size = True
 

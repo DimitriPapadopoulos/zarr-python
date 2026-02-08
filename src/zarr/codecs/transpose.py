@@ -28,7 +28,74 @@ def parse_transpose_order(data: JSON | Iterable[int]) -> tuple[int, ...]:
 
 @dataclass(frozen=True)
 class TransposeCodec(ArrayArrayCodec):
-    """Transpose codec"""
+    """
+    Transpose codec for reordering array dimensions.
+
+    This codec performs dimension transposition on array chunks before they are
+    stored. It can be useful for optimizing access patterns or changing the memory
+    layout of chunked data.
+
+    Attributes
+    ----------
+    is_fixed_size : bool
+        Always True, as transposition doesn't change the total number of elements.
+    order : tuple of int
+        The permutation of dimensions to apply.
+
+    Parameters
+    ----------
+    order : iterable of int
+        A permutation of the dimension indices. For an N-dimensional array, this
+        should be a tuple containing each integer from 0 to N-1 exactly once.
+        For example, (2, 0, 1) transposes a 3-D array by moving the third dimension
+        to the first position, the first to the second, and the second to the third.
+
+    Examples
+    --------
+    Transpose a 2-D array (swap dimensions):
+
+    >>> from zarr.codecs import TransposeCodec
+    >>> codec = TransposeCodec(order=(1, 0))
+    >>> codec.order
+    (1, 0)
+
+    Transpose a 3-D array:
+
+    >>> codec = TransposeCodec(order=(2, 0, 1))
+    >>> codec.order
+    (2, 0, 1)
+
+    Use in array creation:
+
+    >>> import zarr
+    >>> from zarr.codecs import TransposeCodec, BytesCodec, ZstdCodec
+    >>> # Create array with transposed storage
+    >>> arr = zarr.create(
+    ...     shape=(100, 200, 300),
+    ...     chunks=(10, 20, 30),
+    ...     dtype='f4',
+    ...     zarr_format=3,
+    ...     codecs=[TransposeCodec(order=(2, 1, 0)), BytesCodec(), ZstdCodec()]
+    ... )
+
+    Notes
+    -----
+    The transpose codec is an array-to-array codec and must appear before the
+    array-to-bytes codec (typically BytesCodec) in the codec pipeline.
+
+    Transposition can improve access performance when the natural access pattern
+    doesn't match the storage order. For example, if data is stored in row-major
+    order but typically accessed column-wise, transposition can optimize storage.
+
+    The order tuple must:
+    - Have the same length as the number of array dimensions
+    - Contain each dimension index exactly once
+    - Use indices from 0 to ndim-1
+
+    See Also
+    --------
+    BytesCodec : Array-to-bytes codec typically used after TransposeCodec
+    """
 
     is_fixed_size = True
 
