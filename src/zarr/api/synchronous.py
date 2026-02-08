@@ -167,6 +167,42 @@ def load(
     -----
     If loading data from a group of arrays, data will not be immediately loaded into
     memory. Rather, arrays will be loaded into memory as they are requested.
+
+    Examples
+    --------
+    Load a single array:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    # Save an array
+    store = zarr.storage.MemoryStore()
+    zarr.save_array(store, np.arange(100))
+    
+    # Load it back
+    data = zarr.load(store)
+    # array([0, 1, 2, ..., 97, 98, 99])
+    ```
+
+    Load arrays from a group:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    # Save multiple arrays in a group
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(store)
+    grp.create_array('x', data=np.arange(10))
+    grp.create_array('y', data=np.arange(20))
+    
+    # Load all arrays
+    data = zarr.load(store)
+    # Returns a dict-like object with arrays accessible by name
+    data['x']  # array([0, 1, 2, ..., 9])
+    data['y']  # array([0, 1, 2, ..., 19])
+    ```
     """
     return sync(
         async_api.load(store=store, zarr_version=zarr_version, zarr_format=zarr_format, path=path)
@@ -212,6 +248,54 @@ def open(
     -------
     z : array or group
         Return type depends on what exists in the given store.
+
+    Examples
+    --------
+    Open an array from a store:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    # Create an array first
+    store = zarr.storage.MemoryStore()
+    zarr.save_array(store, np.arange(100))
+    
+    # Open the array
+    arr = zarr.open(store, mode='r')
+    # <Array memory://... shape=(100,) dtype=int64>
+    ```
+
+    Open a group from a store:
+
+    ```python
+    import zarr
+    
+    # Create a group first
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(store)
+    
+    # Open the group
+    opened_grp = zarr.open(store)
+    # <Group memory://>
+    ```
+
+    Open with different modes:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    
+    # Create mode - overwrites existing data
+    zarr.open(store, mode='w', shape=(100,), dtype='i4')
+    
+    # Append mode - opens existing or creates new
+    zarr.open(store, mode='a', shape=(100,), dtype='i4')
+    
+    # Read-only mode
+    arr = zarr.open(store, mode='r')
+    ```
     """
     obj = sync(
         async_api.open(
@@ -263,6 +347,28 @@ def save(
         The path within the group where the arrays will be saved.
     **kwargs
         NumPy arrays with data to save.
+
+    Examples
+    --------
+    Save multiple arrays:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    store = zarr.storage.MemoryStore()
+    x = np.arange(10)
+    y = np.arange(20)
+    
+    # Save arrays by position and keyword
+    zarr.save(store, x, y=y, z=np.ones(5))
+    
+    # Load them back
+    data = zarr.load(store)
+    data['0']  # First positional array (x)
+    data['y']  # Named array
+    data['z']  # Named array
+    ```
     """
     return sync(
         async_api.save(
@@ -303,6 +409,43 @@ def save_array(
         the backend implementation. Ignored otherwise.
     **kwargs
         Passed through to [`create`][zarr.api.asynchronous.create], e.g., compressor.
+
+    Examples
+    --------
+    Save a single NumPy array:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    # Create and save an array
+    arr = np.arange(100)
+    store = zarr.storage.MemoryStore()
+    zarr.save_array(store, arr)
+    
+    # Load it back
+    loaded = zarr.load(store)
+    # array([0, 1, 2, ..., 97, 98, 99])
+    ```
+
+    Save with custom compression:
+
+    ```python
+    import zarr
+    import numpy as np
+    from zarr.codecs import GzipCodec, BytesCodec
+    
+    arr = np.random.rand(1000, 1000)
+    store = zarr.storage.MemoryStore()
+    
+    # Save with gzip compression
+    zarr.save_array(
+        store, 
+        arr, 
+        zarr_format=3,
+        codecs=[BytesCodec(), GzipCodec()]
+    )
+    ```
     """
     return sync(
         async_api.save_array(
@@ -402,6 +545,40 @@ def array(data: npt.ArrayLike | AnyArray, **kwargs: Any) -> AnyArray:
     -------
     array : Array
         The new array.
+
+    Examples
+    --------
+    Create an array from a list:
+
+    ```python
+    import zarr
+    
+    arr = zarr.array([1, 2, 3, 4, 5])
+    # <Array memory://... shape=(5,) dtype=int64>
+    arr[...]
+    # array([1, 2, 3, 4, 5])
+    ```
+
+    Create an array from a NumPy array:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    data = np.arange(100).reshape(10, 10)
+    arr = zarr.array(data, chunks=(5, 5))
+    # <Array memory://... shape=(10, 10) dtype=int64>
+    ```
+
+    Create an array with a specific store:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    arr = zarr.array([[1, 2], [3, 4]], store=store)
+    # <Array memory://... shape=(2, 2) dtype=int64>
+    ```
     """
 
     return Array(sync(async_api.array(data=data, **kwargs)))
@@ -455,6 +632,54 @@ def group(
     -------
     g : Group
         The new group.
+
+    Examples
+    --------
+    Create a group in memory:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(store)
+    # <Group memory://>
+    ```
+
+    Create a group with attributes:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(
+        store, 
+        attributes={'description': 'My data', 'version': '1.0'}
+    )
+    grp.attrs['description']
+    # 'My data'
+    ```
+
+    Create nested groups:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    root = zarr.group(store)
+    subgroup = root.create_group('subgroup')
+    subgroup.create_array('data', shape=(100,), dtype='f4')
+    ```
+
+    Create with overwrite:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    grp1 = zarr.group(store)
+    # Overwrite the existing group
+    grp2 = zarr.group(store, overwrite=True)
+    ```
     """
     return Group(
         sync(
@@ -1242,6 +1467,37 @@ def empty(shape: tuple[int, ...], **kwargs: Any) -> AnyArray:
     The contents of an empty Zarr array are not defined. On attempting to
     retrieve data from an empty Zarr array, any values may be returned,
     and these are not guaranteed to be stable from one access to the next.
+
+    Examples
+    --------
+    Create an empty array:
+
+    ```python
+    import zarr
+    
+    arr = zarr.empty((100,), dtype='f4')
+    # <Array memory://... shape=(100,) dtype=float32>
+    # Values are undefined - could be zeros or random values
+    ```
+
+    Create with custom fill value:
+
+    ```python
+    import zarr
+    
+    arr = zarr.empty((10, 10), dtype='i4', fill_value=-1)
+    # <Array memory://... shape=(10, 10) dtype=int32>
+    # Unwritten chunks will return the fill value
+    ```
+
+    Create with chunking:
+
+    ```python
+    import zarr
+    
+    arr = zarr.empty((1000, 1000), chunks=(100, 100), dtype='f8')
+    # <Array memory://... shape=(1000, 1000) dtype=float64>
+    ```
     """
     return Array(sync(async_api.empty(shape, **kwargs)))
 
@@ -1290,6 +1546,39 @@ def full(shape: tuple[int, ...], fill_value: Any, **kwargs: Any) -> AnyArray:
     -------
     Array
         The new array.
+
+    Examples
+    --------
+    Create an array filled with a specific value:
+
+    ```python
+    import zarr
+    
+    arr = zarr.full(100, fill_value=42)
+    # <Array memory://... shape=(100,) dtype=int64>
+    arr[0:5]
+    # array([42, 42, 42, 42, 42])
+    ```
+
+    Create a 2-D array with float values:
+
+    ```python
+    import zarr
+    
+    arr = zarr.full((10, 10), fill_value=3.14, dtype='f4')
+    # <Array memory://... shape=(10, 10) dtype=float32>
+    arr[0, 0:3]
+    # array([3.14, 3.14, 3.14], dtype=float32)
+    ```
+
+    Create with custom chunks:
+
+    ```python
+    import zarr
+    
+    arr = zarr.full((1000,), fill_value=-1, chunks=100, dtype='i2')
+    # <Array memory://... shape=(1000,) dtype=int16>
+    ```
     """
     return Array(sync(async_api.full(shape=shape, fill_value=fill_value, **kwargs)))
 
@@ -1329,6 +1618,28 @@ def ones(shape: tuple[int, ...], **kwargs: Any) -> AnyArray:
     -------
     Array
         The new array.
+
+    Examples
+    --------
+    Create a 1-D array of ones:
+
+    ```python
+    import zarr
+    
+    arr = zarr.ones(100)
+    # <Array memory://... shape=(100,) dtype=float64>
+    arr[0:5]
+    # array([1., 1., 1., 1., 1.])
+    ```
+
+    Create a 3-D array with custom dtype:
+
+    ```python
+    import zarr
+    
+    arr = zarr.ones((10, 20, 30), dtype='i4', chunks=(5, 10, 15))
+    # <Array memory://... shape=(10, 20, 30) dtype=int32>
+    ```
     """
     return Array(sync(async_api.ones(shape, **kwargs)))
 
@@ -1438,6 +1749,38 @@ def zeros(shape: tuple[int, ...], **kwargs: Any) -> AnyArray:
     -------
     Array
         The new array.
+
+    Examples
+    --------
+    Create a 1-D array of zeros:
+
+    ```python
+    import zarr
+    
+    arr = zarr.zeros(100)
+    # <Array memory://... shape=(100,) dtype=float64>
+    arr[0:5]
+    # array([0., 0., 0., 0., 0.])
+    ```
+
+    Create a 2-D array with custom dtype and chunks:
+
+    ```python
+    import zarr
+    
+    arr = zarr.zeros((1000, 1000), chunks=(100, 100), dtype='i4')
+    # <Array memory://... shape=(1000, 1000) dtype=int32>
+    ```
+
+    Create with a specific store:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    arr = zarr.zeros((50, 50), store=store, dtype='f8')
+    # <Array memory://... shape=(50, 50) dtype=float64>
+    ```
     """
     return Array(sync(async_api.zeros(shape=shape, **kwargs)))
 
