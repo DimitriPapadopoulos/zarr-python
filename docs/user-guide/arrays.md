@@ -72,7 +72,7 @@ print(z[:, 0])
 print(z[:])
 ```
 
-Read more about NumPy-style indexing can be found in the
+More information about NumPy-style indexing can be found in the
 [NumPy documentation](https://numpy.org/doc/stable/user/basics.indexing.html).
 
 ## Persistent arrays
