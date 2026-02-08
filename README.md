@@ -13,6 +13,7 @@
     </a>
   </td>
 </tr>
+<tr>
   <td></td>
   <td>
     <a href="https://anaconda.org/anaconda/zarr/">
@@ -47,7 +48,7 @@
 <tr>
   <td>Pre-commit Status</td>
   <td>
-    <a href=""https://github.com/zarr-developers/zarr-python/blob/main/.pre-commit-config.yaml">
+    <a href="https://github.com/zarr-developers/zarr-python/blob/main/.pre-commit-config.yaml">
     <img src="https://results.pre-commit.ci/badge/github/zarr-developers/zarr-python/main.svg" alt="pre-commit status" />
     </a>
   </td>
@@ -57,7 +58,7 @@
   <td>Coverage</td>
   <td>
     <a href="https://codecov.io/gh/zarr-developers/zarr-python">
-    <img src="https://codecov.io/gh/zarr-developers/zarr-python/branch/main/graph/badge.svg"/ alt="coverage">
+    <img src="https://codecov.io/gh/zarr-developers/zarr-python/branch/main/graph/badge.svg" alt="coverage" />
     </a>
   </td>
 </tr>
@@ -85,6 +86,7 @@
 		</a>
 	</td>
 </tr>
+<tr>
 	<td>Citation</td>
 	<td>
 		<a href="https://doi.org/10.5281/zenodo.3773450">
