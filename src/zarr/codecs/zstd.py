@@ -36,7 +36,86 @@ def parse_checksum(data: JSON) -> bool:
 
 @dataclass(frozen=True)
 class ZstdCodec(BytesBytesCodec):
-    """zstd codec"""
+    """
+    Zstandard (zstd) compression codec for zarr.
+
+    Zstandard is a modern, fast compression algorithm that provides excellent
+    compression ratios. It's designed to offer a better balance between compression
+    speed and ratio than traditional algorithms like gzip, making it ideal for
+    real-time compression scenarios.
+
+    Attributes
+    ----------
+    is_fixed_size : bool
+        Always True for Zstd codec in this implementation.
+    level : int
+        The compression level (-131072 to 22).
+    checksum : bool
+        Whether to include a checksum with compressed data.
+
+    Parameters
+    ----------
+    level : int, optional
+        The compression level, from -131072 (fastest) to 22 (maximum compression).
+        Negative values enable ultra-fast mode with reduced compression ratios.
+        Positive values provide better compression at the cost of speed.
+        Default: 0 (balanced).
+    checksum : bool, optional
+        If True, include a checksum with compressed data for integrity verification.
+        Default: False.
+
+    Examples
+    --------
+    Create a Zstd codec with default settings:
+
+    >>> from zarr.codecs import ZstdCodec
+    >>> codec = ZstdCodec()
+    >>> codec.level
+    0
+    >>> codec.checksum
+    False
+
+    Create with high compression:
+
+    >>> codec = ZstdCodec(level=10, checksum=True)
+    >>> codec.level
+    10
+
+    Use in array creation:
+
+    >>> import zarr
+    >>> from zarr.codecs import BytesCodec, ZstdCodec
+    >>> arr = zarr.create(
+    ...     shape=(1000, 1000),
+    ...     chunks=(100, 100),
+    ...     dtype='f8',
+    ...     zarr_format=3,
+    ...     codecs=[BytesCodec(), ZstdCodec(level=3)]
+    ... )
+
+    Fast compression mode:
+
+    >>> codec = ZstdCodec(level=-5)  # Ultra-fast compression
+    >>> codec.level
+    -5
+
+    Notes
+    -----
+    Zstandard is often the default compression codec in Zarr v3 due to its excellent
+    performance characteristics. It provides:
+
+    - Fast compression and decompression speeds
+    - High compression ratios competitive with gzip
+    - Support for ultra-fast modes via negative compression levels
+    - Optional checksums for data integrity
+
+    Requires numcodecs >= 0.13.0.
+
+    See Also
+    --------
+    BloscCodec : High-performance codec with multiple compression algorithms
+    GzipCodec : Traditional compression with good ratios
+    """
 
     is_fixed_size = True
 

@@ -29,7 +29,64 @@ def parse_gzip_level(data: JSON) -> int:
 
 @dataclass(frozen=True)
 class GzipCodec(BytesBytesCodec):
-    """gzip codec"""
+    """
+    Gzip compression codec for zarr.
+
+    Gzip is a widely-used lossless compression format based on the DEFLATE algorithm.
+    It provides good compression ratios with reasonable speed, making it suitable for
+    general-purpose data compression.
+
+    Attributes
+    ----------
+    is_fixed_size : bool
+        Always False for Gzip codec, as compression produces variable-sized output.
+    level : int
+        The compression level (0-9).
+
+    Parameters
+    ----------
+    level : int, optional
+        The compression level, from 0 (no compression) to 9 (maximum compression).
+        Higher values provide better compression at the cost of speed. Default: 5.
+
+    Examples
+    --------
+    Create a Gzip codec with default compression:
+
+    >>> from zarr.codecs import GzipCodec
+    >>> codec = GzipCodec()
+    >>> codec.level
+    5
+
+    Create with maximum compression:
+
+    >>> codec = GzipCodec(level=9)
+    >>> codec.level
+    9
+
+    Use in array creation:
+
+    >>> import zarr
+    >>> from zarr.codecs import BytesCodec, GzipCodec
+    >>> arr = zarr.create(
+    ...     shape=(100, 100),
+    ...     chunks=(10, 10),
+    ...     dtype='f8',
+    ...     zarr_format=3,
+    ...     codecs=[BytesCodec(), GzipCodec(level=6)]
+    ... )
+
+    Notes
+    -----
+    Gzip compression is slower than algorithms like LZ4 but often achieves better
+    compression ratios. It's a good choice when storage size is more important
+    than compression/decompression speed.
+
+    See Also
+    --------
+    BloscCodec : High-performance compression codec with multiple algorithms
+    ZstdCodec : Modern compression codec with good balance of speed and ratio
+    """
 
     is_fixed_size = False
 

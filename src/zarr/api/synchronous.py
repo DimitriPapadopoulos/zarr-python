@@ -769,6 +769,68 @@ def open_group(
     -------
     g : Group
         The new group.
+
+    Examples
+    --------
+    Open an existing group:
+
+    ```python
+    import zarr
+    
+    # Create a group first
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(store)
+    grp.create_array('data', shape=(100,), dtype='i4')
+    
+    # Open the group
+    opened = zarr.open_group(store, mode='r')
+    # <Group memory://>
+    list(opened.array_keys())
+    # ['data']
+    ```
+
+    Open or create a group:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    
+    # Open with append mode (creates if doesn't exist)
+    grp = zarr.open_group(store, mode='a')
+    # <Group memory://>
+    ```
+
+    Open with consolidated metadata:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    grp = zarr.group(store)
+    grp.create_array('x', shape=(10,), dtype='i4')
+    
+    # Consolidate metadata
+    zarr.consolidate_metadata(store)
+    
+    # Open with consolidated metadata
+    grp = zarr.open_group(store, use_consolidated=True)
+    # Metadata reads are faster
+    ```
+
+    Open at a specific path:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    root = zarr.group(store)
+    root.create_group('subgroup')
+    
+    # Open the subgroup directly
+    subgrp = zarr.open_group(store, path='subgroup')
+    # <Group memory://subgroup>
+    ```
     """
     return Group(
         sync(
@@ -1698,6 +1760,56 @@ def open_array(
     -------
     AsyncArray
         The opened array.
+
+    Examples
+    --------
+    Open an existing array:
+
+    ```python
+    import zarr
+    import numpy as np
+    
+    # Create an array first
+    store = zarr.storage.MemoryStore()
+    zarr.save_array(store, np.arange(100))
+    
+    # Open the array
+    arr = zarr.open_array(store)
+    # <Array memory://... shape=(100,) dtype=int64>
+    arr[0:5]
+    # array([0, 1, 2, 3, 4])
+    ```
+
+    Open with specific mode:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    
+    # Open in read-only mode
+    arr = zarr.open_array(store, mode='r')
+    
+    # Open in read-write mode
+    arr = zarr.open_array(store, mode='r+')
+    ```
+
+    Open or create an array:
+
+    ```python
+    import zarr
+    
+    store = zarr.storage.MemoryStore()
+    
+    # Open or create with 'a' mode
+    arr = zarr.open_array(
+        store, 
+        mode='a', 
+        shape=(100,), 
+        dtype='i4'
+    )
+    # <Array memory://... shape=(100,) dtype=int32>
+    ```
     """
     return Array(
         sync(

@@ -124,3 +124,28 @@ conda install -c conda-forge zarr
 ```
 
 For more details, including how to install from source, see the [installation documentation](https://zarr.readthedocs.io/en/stable/index.html#installation).
+
+## Quick Start
+
+Here's a quick example to get you started with Zarr:
+
+```python
+import zarr
+import numpy as np
+
+# Create a Zarr array
+store = zarr.storage.MemoryStore()
+z = zarr.create(shape=(10000, 10000), chunks=(1000, 1000), dtype='f8', store=store)
+
+# Write data
+z[:] = np.random.random((10000, 10000))
+
+# Read data
+print(z[0, :10])  # Read first 10 elements of first row
+
+# Zarr arrays support NumPy-like slicing
+subset = z[1000:2000, 1000:2000]
+print(subset.shape)  # (1000, 1000)
+```
+
+For more examples and detailed usage, see the [Quick Start Guide](https://zarr.readthedocs.io/en/stable/quick-start.html).
