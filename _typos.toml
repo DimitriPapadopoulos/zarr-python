@@ -1,0 +1,7 @@
+[files]
+extend-exclude = ["localized/*.po"]
+
+[default.extend-words]
+arange = "arange"
+nd = "nd"
+fo="fo"
